@@ -3,7 +3,6 @@
 from sage.misc.cachefunc import cached_method
 from sage.all import gcd, Rational, power_mod, Integers, gp, xsrange
 from flask import url_for
-import lmfdb
 from lmfdb.utils import make_logger, web_latex_split_on_pm
 logger = make_logger("DC")
 from lmfdb.nfutils.psort import ideal_label, ideal_from_label
@@ -662,6 +661,8 @@ class WebChar(WebCharObject):
 
     @property
     def friends(self):
+        from lmfdb.lfunctions.LfunctionDatabase import get_lfunction_by_url
+
         f = []
         cglink = url_character(type=self.type,number_field=self.nflabel,modulus=self.modlabel)
         f.append( ("Character Group", cglink) )
@@ -669,7 +670,7 @@ class WebChar(WebCharObject):
             f.append( ('Number Field', '/NumberField/' + self.nflabel) )
         if self.type == 'Dirichlet' and self.chi.is_primitive() and self.conductor < 10000:
             url = url_character(type=self.type, umber_field=self.nflabel, modulus=self.modlabel, number=self.numlabel)
-            if lmfdb.lfunctions.LfunctionDatabase.getInstanceLdata(url[1:]):
+            if get_lfunction_by_url(url[1:]):
                 f.append( ('L-function', '/L'+ url) )
         if self.type == 'Dirichlet':
             f.append( ('Sato-Tate group', '/SatoTateGroup/0.1.%d'%self.order) )
@@ -789,7 +790,11 @@ class WebSmallDirichletCharacter(WebChar, WebDirichlet):
     @property
     def indlabel(self):  return None
     def value(self, *args): return None
-    def charsums(self, *args): return False
+
+    @property
+    def charsums(self, *args):
+        return False
+
     def gauss_sum(self, *args): return None
     def jacobi_sum(self, *args): return None
     def kloosterman_sum(self, *args): return None
@@ -838,8 +843,9 @@ class WebSmallDirichletCharacter(WebChar, WebDirichlet):
         mod, num = self.modulus, self.number
         prim = self.isprimitive
         #beware this **must** be a generator
-        orbit = ( power_mod(num, k, mod) for k in xsrange(1, order) if gcd(k, order) == 1) # use xsrange not xrange
-        return ( self._char_desc(num, prim=prim) for num in orbit )
+        orbit = (power_mod(num, k, mod) for k in xsrange(1, order + 1)
+                 if gcd(k, order) == 1)
+        return (self._char_desc(num, prim=prim) for num in orbit)
 
     def symbol_numerator(self):
         """ chi is equal to a kronecker symbol if and only if it is real """
@@ -915,7 +921,7 @@ class WebDirichletCharacter(WebSmallDirichletCharacter):
 
     @property
     def codeinducing(self):
-        return { 'sage': 'sage: chi.primitive_character()',
+        return { 'sage': 'chi.primitive_character()',
                  'pari': ['znconreyconductor(g,chi,&chi0)','chi0'] }
 
     @property
@@ -967,7 +973,7 @@ class WebDirichletCharacter(WebSmallDirichletCharacter):
         chitex = self.char2tex(mod, num, tag=False)
         chitexr = self.char2tex(mod, num, 'r', tag=False)
         deftex = r'\sum_{r\in %s} %s e\left(\frac{%s}{%s}\right)'%(Gtex,chitexr,n,d)
-        return r"\(\displaystyle \tau_{%s}(%s) = %s = %s. \)" % (val, chitex, deftex, g)
+        return r"\(\displaystyle \tau_{%s}(%s) = %s = %s \)" % (val, chitex, deftex, g)
 
     @property
     def codegauss(self):
@@ -990,7 +996,7 @@ class WebDirichletCharacter(WebSmallDirichletCharacter):
         psitex1r = self.char2tex(mod, val, '1-r', tag=False)
         deftex = r'\sum_{r\in %s} %s %s'%(Gtex,chitexr,psitex1r)
         from sage.all import latex
-        return r"\( \displaystyle J(%s,%s) = %s = %s.\)" % (chitex, psitex, deftex, latex(jacobi_sum))
+        return r"\( \displaystyle J(%s,%s) = %s = %s \)" % (chitex, psitex, deftex, latex(jacobi_sum))
 
     @property
     def codejacobi(self):
@@ -1014,7 +1020,7 @@ class WebDirichletCharacter(WebSmallDirichletCharacter):
         \( \displaystyle K(%s,%s,\chi_{%s}(%s,&middot;))
         = \sum_{r \in \Z/%s\Z}
              \chi_{%s}(%s,r) e\left(\frac{%s r + %s r^{-1}}{%s}\right)
-        = %s. \)""" % (a, b, modulus, number, modulus, modulus, number, a, b, modulus, k)
+        = %s \)""" % (a, b, modulus, number, modulus, modulus, number, a, b, modulus, k)
 
     @property
     def codekloosterman(self):

@@ -1,6 +1,5 @@
 password*
 config.ini
-mongoclient.config
 
 *.pyc
 *.pyo
@@ -10,7 +9,6 @@ mongoclient.config
 *.swp
 *~
 
-static/MathJax
 
 flasklog
 
