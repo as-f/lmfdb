@@ -372,10 +372,15 @@ def higher_genus_w_automorphisms_search(info, query):
         elif info['inc_full'] == 'only':
             query['full_auto'] = {'$exists': False}
     query['cc.1'] = 1
-
     
     info['group_display'] = sg_pretty
     info['sign_display'] = sign_display
+
+    # Sort order
+    query['__sort__'] = ['genus', 'group_order', 'g0', 'dim']
+    if 'sort_order' in info and info['sort_order'] in query['__sort__']:
+        query['__sort__'].remove(info['sort_order'])
+        query['__sort__'].insert(0, info['sort_order'])
 
 def render_family(args):
     info = {}
