@@ -377,7 +377,14 @@ def higher_genus_w_automorphisms_search(info, query):
     info['sign_display'] = sign_display
 
     # Sort order
-    query['__sort__'] = ['genus', 'group_order', 'g0', 'dim']
+    # For now, we need to check if the gp_id_num2 column exists since it hasn't been added yet.
+    # Once it has been added, the code will work, but the if statement that checks for its existence
+    # will be redundant, and we can just keep
+    # `query['__sort__'] = ['genus', 'group_order', 'gp_id_num2', 'g0', 'dim']`
+    if 'gp_id_num2' in db.hgcwa_passports.col_type:
+        query['__sort__'] = ['genus', 'group_order', 'gp_id_num2', 'g0', 'dim']
+    else:
+        query['__sort__'] = ['genus', 'group_order', 'g0', 'dim']
     if 'sort_order' in info and info['sort_order'] in query['__sort__']:
         query['__sort__'].remove(info['sort_order'])
         query['__sort__'].insert(0, info['sort_order'])

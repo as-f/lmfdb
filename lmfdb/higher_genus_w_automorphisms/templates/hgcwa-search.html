@@ -115,14 +115,14 @@
 
 <tr>
   <td>
-    {{KNOWL('curve.highergenus.aut.dimension',title='Sort order')}}:
+    Sort order:
   </td>
   <td>
     <select name="sort_order">
-        <option value="genus">genus</option>
-        <option value="g0">quotient genus</option>
-        <option value="dim">dimension</option>
-        <option value="group_order">group order</option>
+        <option value="genus"{% if info.sort_order == "genus" %} selected {% endif %}>genus</option>
+        <option value="g0"{% if info.sort_order == "g0" %} selected {% endif %}>quotient genus</option>
+        <option value="dim"{% if info.sort_order == "dim" %} selected {% endif %}>dimension</option>
+        <option value="group_order"{% if info.sort_order == "group_order" %} selected {% endif %}>group order</option>
     </select>
   </td>
 </tr>
